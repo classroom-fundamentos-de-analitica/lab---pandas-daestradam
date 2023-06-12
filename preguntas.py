@@ -8,6 +8,7 @@ Utilice los archivos `tbl0.tsv`, `tbl1.tsv` y `tbl2.tsv`, para resolver las preg
 
 """
 import pandas as pd
+import numpy as np
 
 tbl0 = pd.read_csv("tbl0.tsv", sep="\t")
 tbl1 = pd.read_csv("tbl1.tsv", sep="\t")
@@ -154,7 +155,9 @@ def pregunta_09():
     39   39   E    5  1998-01-26  1998
 
     """
-    return
+    tbl0['year'] = tbl0['_c3'].str.slice(0, 4)
+    
+    return tbl0
 
 
 def pregunta_10():
@@ -171,7 +174,17 @@ def pregunta_10():
     3   D                  1:2:3:5:5:7
     4   E  1:1:2:3:3:4:5:5:5:6:7:8:8:9
     """
-    return
+    dataf = pd.DataFrame()
+    for letra in tbl0["_c1"].unique():
+        df = np.where(tbl0["_c1"]==letra,tbl0["_c2"],"")
+        df = np.delete(df, np.where(df == ""))
+        string = ""
+        for item in list(np.sort(df, axis=0)):
+            string = string + str(item) + ":"
+        string = string[:-1]
+        temp = pd.DataFrame({"_c1":[letra], "_c2": string})
+        dataf = dataf.append(temp, ignore_index=True)
+    return dataf.sort_values("_c1").set_index("_c1")
 
 
 def pregunta_11():
@@ -190,7 +203,18 @@ def pregunta_11():
     38   38      d,e
     39   39    a,d,f
     """
-    return
+    dataf = pd.DataFrame()
+    for letra in tbl1["_c0"].unique():
+        df = np.where(tbl1["_c0"]==letra,tbl1["_c4"],"")
+        df = np.delete(df, np.where(df == ""))
+        string = ""
+        for item in list(np.sort(df, axis=0)):
+            string = string + str(item) + ","
+        string = string[:-1]
+        temp = pd.DataFrame({"_c0":[letra], "_c4": string})
+        dataf = dataf.append(temp, ignore_index=True)
+
+    return dataf
 
 
 def pregunta_12():
@@ -208,7 +232,29 @@ def pregunta_12():
     38   38                    eee:0,fff:9,iii:2
     39   39                    ggg:3,hhh:8,jjj:5
     """
-    return
+    diccionario = {}
+    for i in range (len(tbl2)):
+        if tbl2.loc[i]["_c0"] in diccionario:
+            diccionario[tbl2.loc[i]["_c0"]] = diccionario[tbl2.loc[i]["_c0"]] + "," + tbl2.loc[i]["_c5a"] + ":" + str(tbl2.loc[i]["_c5b"])
+        else:
+            diccionario[tbl2.loc[i]["_c0"]] = tbl2.loc[i]["_c5a"] + ":" + str(tbl2.loc[i]["_c5b"])
+            
+    for k,v in diccionario.items():
+        lista = v.split(",")
+        lista.sort()
+        diccionario[k] = lista
+    df = pd.DataFrame({"_c0": diccionario.keys(),
+            "_c5a" : diccionario.values()})
+    lista = []
+    for valor in df["_c5a"]:
+        string = "hola"
+        for i in valor:
+            string = string + ',' + i
+        lista.append(string)
+    df['_c5'] = lista
+    df['_c5'] = df['_c5'].str.replace('hola,','')
+    del df['_c5a']
+    return df
 
 
 def pregunta_13():
@@ -225,4 +271,4 @@ def pregunta_13():
     E    275
     Name: _c5b, dtype: int64
     """
-    return
+    return tbl0.merge(tbl2, right_on = '_c0', left_on = '_c0').groupby('_c1').sum()['_c5b']
