@@ -8,6 +8,7 @@ Utilice los archivos `tbl0.tsv`, `tbl1.tsv` y `tbl2.tsv`, para resolver las preg
 
 """
 import pandas as pd
+import numpy as np
 
 tbl0 = pd.read_csv("tbl0.tsv", sep="\t")
 tbl1 = pd.read_csv("tbl1.tsv", sep="\t")
@@ -22,7 +23,7 @@ def pregunta_01():
     40
 
     """
-    return
+    return len(tbl0.index)
 
 
 def pregunta_02():
@@ -33,7 +34,7 @@ def pregunta_02():
     4
 
     """
-    return
+    return len(tbl0.columns)
 
 
 def pregunta_03():
@@ -50,7 +51,7 @@ def pregunta_03():
     Name: _c1, dtype: int64
 
     """
-    return
+    return tbl0["_c1"].groupby(tbl0["_c1"]).size()
 
 
 def pregunta_04():
@@ -65,7 +66,7 @@ def pregunta_04():
     E    4.785714
     Name: _c2, dtype: float64
     """
-    return
+    return tbl0[["_c1","_c2"]].groupby(by=["_c1"]).mean().squeeze()
 
 
 def pregunta_05():
@@ -82,7 +83,7 @@ def pregunta_05():
     E    9
     Name: _c2, dtype: int64
     """
-    return
+    return tbl0[["_c1","_c2"]].groupby(by=["_c1"]).max().squeeze()
 
 
 def pregunta_06():
@@ -94,7 +95,13 @@ def pregunta_06():
     ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 
     """
-    return
+    lst = []
+    for item in tbl1["_c4"]:
+        if item.upper() not in lst:
+            lst.append(item.upper())
+    lst.sort()
+    
+    return lst
 
 
 def pregunta_07():
@@ -110,7 +117,7 @@ def pregunta_07():
     E    67
     Name: _c2, dtype: int64
     """
-    return
+    return tbl0[["_c1","_c2"]].groupby(by=["_c1"]).sum().squeeze()
 
 
 def pregunta_08():
@@ -128,7 +135,9 @@ def pregunta_08():
     39   39   E    5  1998-01-26    44
 
     """
-    return
+    tbl0["suma"] = tbl0["_c0"] + tbl0["_c2"]
+
+    return tbl0
 
 
 def pregunta_09():
@@ -146,7 +155,9 @@ def pregunta_09():
     39   39   E    5  1998-01-26  1998
 
     """
-    return
+    tbl0['year'] = tbl0['_c3'].str.slice(0, 4)
+    
+    return tbl0
 
 
 def pregunta_10():
@@ -163,7 +174,11 @@ def pregunta_10():
     3   D                  1:2:3:5:5:7
     4   E  1:1:2:3:3:4:5:5:5:6:7:8:8:9
     """
-    return
+    tbl3 = tbl0[["_c1","_c2"]]
+    tbl3 = tbl3.sort_values("_c2")
+    tbl3["_c2"] = tbl3["_c2"].astype("str")
+    tbl4 = tbl3.groupby("_c1").agg({"_c2":':'.join})    
+    return tbl4
 
 
 def pregunta_11():
@@ -182,7 +197,10 @@ def pregunta_11():
     38   38      d,e
     39   39    a,d,f
     """
-    return
+    tbl3 = tbl1.sort_values(["_c0","_c4"])
+    tbl3 = tbl3.groupby("_c0").agg({"_c4":",".join})
+    tbl3.reset_index(inplace=True)
+    return tbl3
 
 
 def pregunta_12():
@@ -200,7 +218,29 @@ def pregunta_12():
     38   38                    eee:0,fff:9,iii:2
     39   39                    ggg:3,hhh:8,jjj:5
     """
-    return
+    diccionario = {}
+    for i in range (len(tbl2)):
+        if tbl2.loc[i]["_c0"] in diccionario:
+            diccionario[tbl2.loc[i]["_c0"]] = diccionario[tbl2.loc[i]["_c0"]] + "," + tbl2.loc[i]["_c5a"] + ":" + str(tbl2.loc[i]["_c5b"])
+        else:
+            diccionario[tbl2.loc[i]["_c0"]] = tbl2.loc[i]["_c5a"] + ":" + str(tbl2.loc[i]["_c5b"])
+            
+    for k,v in diccionario.items():
+        lista = v.split(",")
+        lista.sort()
+        diccionario[k] = lista
+    df = pd.DataFrame({"_c0": diccionario.keys(),
+            "_c5a" : diccionario.values()})
+    lista = []
+    for valor in df["_c5a"]:
+        string = "hola"
+        for i in valor:
+            string = string + ',' + i
+        lista.append(string)
+    df['_c5'] = lista
+    df['_c5'] = df['_c5'].str.replace('hola,','')
+    del df['_c5a']
+    return df
 
 
 def pregunta_13():
@@ -217,4 +257,4 @@ def pregunta_13():
     E    275
     Name: _c5b, dtype: int64
     """
-    return
+    return tbl0.merge(tbl2, right_on = '_c0', left_on = '_c0').groupby('_c1').sum()['_c5b']
