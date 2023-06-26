@@ -174,17 +174,11 @@ def pregunta_10():
     3   D                  1:2:3:5:5:7
     4   E  1:1:2:3:3:4:5:5:5:6:7:8:8:9
     """
-    dataf = pd.DataFrame()
-    for letra in tbl0["_c1"].unique():
-        df = np.where(tbl0["_c1"]==letra,tbl0["_c2"],"")
-        df = np.delete(df, np.where(df == ""))
-        string = ""
-        for item in list(np.sort(df, axis=0)):
-            string = string + str(item) + ":"
-        string = string[:-1]
-        temp = pd.DataFrame({"_c1":[letra], "_c2": string})
-        dataf = dataf.append(temp, ignore_index=True)
-    return dataf.sort_values("_c1").set_index("_c1")
+    tbl3 = tbl0[["_c1","_c2"]]
+    tbl3 = tbl3.sort_values("_c2")
+    tbl3["_c2"] = tbl3["_c2"].astype("str")
+    tbl4 = tbl3.groupby("_c1").agg({"_c2":':'.join})    
+    return tbl4
 
 
 def pregunta_11():
@@ -203,18 +197,10 @@ def pregunta_11():
     38   38      d,e
     39   39    a,d,f
     """
-    dataf = pd.DataFrame()
-    for letra in tbl1["_c0"].unique():
-        df = np.where(tbl1["_c0"]==letra,tbl1["_c4"],"")
-        df = np.delete(df, np.where(df == ""))
-        string = ""
-        for item in list(np.sort(df, axis=0)):
-            string = string + str(item) + ","
-        string = string[:-1]
-        temp = pd.DataFrame({"_c0":[letra], "_c4": string})
-        dataf = dataf.append(temp, ignore_index=True)
-
-    return dataf
+    tbl3 = tbl1.sort_values(["_c0","_c4"])
+    tbl3 = tbl3.groupby("_c0").agg({"_c4":",".join})
+    tbl3.reset_index(inplace=True)
+    return tbl3
 
 
 def pregunta_12():
